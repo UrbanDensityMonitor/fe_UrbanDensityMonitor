@@ -18,8 +18,8 @@ export default function Page() {
   const [activeNav, setActiveNav] = useState<string>("home");
 
   // Application layer: inject data via use-case hook (calls infrastructure service)
-  const { data, isLoading, error, refetch, lastFetchedAt } = useTrafficData(
-    30_000 // auto-refresh every 30s
+  const { data, frameBase64, isLoading, error, refetch, lastFetchedAt } = useTrafficData(
+    "default-stream-id" // In a real app, this comes from URL params or context
   );
 
   const totalVehicles = useMemo(() => {
@@ -31,8 +31,8 @@ export default function Page() {
 
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-app-bg">
-      {/* Layer 0: Full-screen map background */}
-      <MapBackground />
+      {/* Layer 0: Full-screen map background or Live Feed */}
+      <MapBackground frameBase64={frameBase64} />
 
       {/* Loading state */}
       {isLoading && !data && <LoadingOverlay />}

@@ -1,11 +1,20 @@
 // src/presentation/components/MapBackground.tsx
 "use client";
 
-export function MapBackground() {
+export function MapBackground({ frameBase64 }: { frameBase64?: string | null }) {
   return (
     <div className="fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
       {/* Base dark background */}
       <div className="absolute inset-0 bg-app-bg" />
+
+      {/* Live Video Feed (if available) */}
+      {frameBase64 && (
+        <img 
+          src={`data:image/jpeg;base64,${frameBase64}`} 
+          alt="Live Stream Feed" 
+          className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen"
+        />
+      )}
 
       {/* Grid overlay */}
       <div
