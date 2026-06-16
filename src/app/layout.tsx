@@ -1,7 +1,7 @@
-// src/app/layout.tsx
 import type { Metadata } from "next";
 import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import AuthProvider from "@/presentation/components/AuthProvider";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -23,7 +23,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id" className={spaceGrotesk.variable}>
-      <body className={spaceGrotesk.className}>{children}</body>
+      <body className={spaceGrotesk.className}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

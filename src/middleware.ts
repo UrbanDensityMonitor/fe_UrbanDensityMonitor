@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const hasAuthCookie = request.cookies.has('sb-auth-token');
   const isAuthRoute = request.nextUrl.pathname.startsWith('/auth');
-  const isProtectedRoute = request.nextUrl.pathname.startsWith('/dashboard') || 
+  const isProtectedRoute = request.nextUrl.pathname === '/' || 
                            request.nextUrl.pathname.startsWith('/admin') ||
                            request.nextUrl.pathname.startsWith('/streams') ||
                            request.nextUrl.pathname.startsWith('/history') ||
@@ -17,7 +17,7 @@ export function middleware(request: NextRequest) {
 
   // Redirect to dashboard if accessing auth route with token
   if (isAuthRoute && hasAuthCookie) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/', request.url))
   }
 
   return NextResponse.next()
@@ -25,7 +25,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/dashboard/:path*', 
+    '/', 
     '/admin/:path*', 
     '/auth',
     '/streams/:path*',

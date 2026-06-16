@@ -18,7 +18,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       if (!session && !isAuthRoute) {
         router.push("/auth");
       } else if (session && isAuthRoute) {
-        router.push("/dashboard");
+        router.push("/");
       }
       
       setIsLoading(false);
@@ -28,7 +28,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
-        router.push("/dashboard");
+        router.push("/");
       } else if (event === 'SIGNED_OUT') {
         router.push("/auth");
       }

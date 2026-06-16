@@ -24,7 +24,7 @@ export default function AuthPage() {
       } else {
         await authService.signUp(email, password, fullName);
       }
-      router.push("/dashboard");
+      router.push("/");
     } catch (err: any) {
       setError(err.message || "An error occurred during authentication.");
     } finally {
