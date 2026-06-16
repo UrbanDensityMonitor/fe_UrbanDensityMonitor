@@ -1,3 +1,7 @@
+/**
+ * @deprecated Service ini sudah usang dan digantikan oleh trafficWebSocketService.ts
+ * File ini hanya dipertahankan untuk referensi struktur data awal.
+ */
 // src/infrastructure/services/trafficMockService.ts
 
 import type { DashboardData, TrafficMetric, AlertStatus } from "@/domain/entities/TrafficMetric";
