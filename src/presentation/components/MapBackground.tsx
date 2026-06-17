@@ -10,7 +10,7 @@ export function MapBackground({ frameBase64 }: { frameBase64?: string | null }) 
       {/* Live Video Feed (if available) */}
       {frameBase64 && (
         <img 
-          src={`data:image/jpeg;base64,${frameBase64}`} 
+          src={frameBase64.startsWith('data:image') ? frameBase64 : `data:image/jpeg;base64,${frameBase64}`} 
           alt="Live Stream Feed" 
           className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-screen"
         />

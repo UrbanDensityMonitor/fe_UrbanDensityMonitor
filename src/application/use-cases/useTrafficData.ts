@@ -15,7 +15,7 @@ interface UseTrafficDataResult {
   lastFetchedAt: Date | null;
 }
 
-export function useTrafficData(streamId: string): UseTrafficDataResult {
+export function useTrafficData(streamId: string | null): UseTrafficDataResult {
   const [data, setData] = useState<DashboardData | null>(null);
   const [frameBase64, setFrameBase64] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -23,6 +23,11 @@ export function useTrafficData(streamId: string): UseTrafficDataResult {
   const [lastFetchedAt, setLastFetchedAt] = useState<Date | null>(null);
 
   useEffect(() => {
+    if (!streamId) {
+      setIsLoading(true);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -139,8 +144,10 @@ export function useTrafficData(streamId: string): UseTrafficDataResult {
     isLoading,
     error,
     refetch: () => {
-      trafficWebSocketService.disconnect();
-      trafficWebSocketService.connect(streamId);
+      if (streamId) {
+        trafficWebSocketService.disconnect();
+        trafficWebSocketService.connect(streamId);
+      }
     },
     lastFetchedAt,
   };

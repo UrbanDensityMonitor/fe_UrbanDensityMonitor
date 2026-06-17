@@ -1,10 +1,11 @@
 // src/app/page.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 // Application layer
 import { useTrafficData } from "@/application/use-cases/useTrafficData";
+import { apiService } from "@/infrastructure/services/apiService";
 
 // Presentation layer — UI components
 import { MapBackground } from "@/presentation/components/MapBackground";
@@ -16,10 +17,24 @@ import { LoadingOverlay } from "@/presentation/components/LoadingOverlay";
 
 export default function Page() {
   const [activeNav, setActiveNav] = useState<string>("home");
+  const [activeStreamId, setActiveStreamId] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiService.get("/api/streams")
+      .then((res) => {
+        // Backend Python biasanya me-return list atau object dengan streams
+        const streams = Array.isArray(res) ? res : res.data || res.streams || [];
+        if (streams.length > 0) {
+          // Ambil ID dari CCTV pertama (berdasarkan struktur cctv.id atau id)
+          setActiveStreamId(streams[0].id || streams[0].stream_id || streams[0].name || "default-stream");
+        }
+      })
+      .catch((err) => console.error("Gagal menarik daftar CCTV:", err));
+  }, []);
 
   // Application layer: inject data via use-case hook (calls infrastructure service)
   const { data, frameBase64, isLoading, error, refetch, lastFetchedAt } = useTrafficData(
-    "default-stream-id" // In a real app, this comes from URL params or context
+    activeStreamId
   );
 
   const totalVehicles = useMemo(() => {
