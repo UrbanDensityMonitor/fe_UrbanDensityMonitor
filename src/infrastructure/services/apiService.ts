@@ -14,7 +14,7 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   }
   
   // WAJIB: bypass peringatan ngrok
-  headers.set("ngrok-skip-browser-warning", "true");
+  headers.set("ngrok-skip-browser-warning", "69420");
   
   if (!headers.has("Content-Type") && !(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");

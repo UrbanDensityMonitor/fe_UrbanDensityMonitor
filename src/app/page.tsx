@@ -5,7 +5,8 @@ import { useState, useMemo, useEffect } from "react";
 
 // Application layer
 import { useTrafficData } from "@/application/use-cases/useTrafficData";
-import { apiService } from "@/infrastructure/services/apiService";
+import { streamService } from "@/infrastructure/services/streamService";
+import type { Stream } from "@/domain/entities/TrafficMetric";
 
 // Presentation layer — UI components
 import { MapBackground } from "@/presentation/components/MapBackground";
@@ -16,26 +17,25 @@ import { AlertPanel } from "@/presentation/components/AlertPanel";
 import { LoadingOverlay } from "@/presentation/components/LoadingOverlay";
 
 export default function Page() {
-  const [activeNav, setActiveNav] = useState<string>("home");
+  const [streams, setStreams] = useState<Stream[]>([]);
   const [activeStreamId, setActiveStreamId] = useState<string | null>(null);
+  const [isStreamsLoading, setIsStreamsLoading] = useState(true);
 
   useEffect(() => {
-    apiService.get("/api/streams")
-      .then((res) => {
-        // Backend Python biasanya me-return list atau object dengan streams
-        const streams = Array.isArray(res) ? res : res.data || res.streams || [];
-        if (streams.length > 0) {
-          // Ambil ID dari CCTV pertama (berdasarkan struktur cctv.id atau id)
-          setActiveStreamId(streams[0].id || streams[0].stream_id || streams[0].name || "default-stream");
-        }
+    streamService
+      .getStreams()
+      .then((data) => {
+        setStreams(data);
+        const firstActive = data.find((s) => s.status === "active");
+        if (firstActive) setActiveStreamId(firstActive.id);
       })
-      .catch((err) => console.error("Gagal menarik daftar CCTV:", err));
+      .catch((err) => console.error("Failed to load streams:", err))
+      .finally(() => setIsStreamsLoading(false));
   }, []);
 
   // Application layer: inject data via use-case hook (calls infrastructure service)
-  const { data, frameBase64, isLoading, error, refetch, lastFetchedAt } = useTrafficData(
-    activeStreamId
-  );
+  const { data, frameBase64, isLoading, error, refetch, lastFetchedAt } =
+    useTrafficData(activeStreamId);
 
   const totalVehicles = useMemo(() => {
     if (!data) return 0;
@@ -44,13 +44,16 @@ export default function Page() {
       .reduce((sum, m) => sum + (typeof m.value === "number" ? m.value : 0), 0);
   }, [data]);
 
+  // Resolve selected stream's location name
+  const selectedStream = streams.find((s) => s.id === activeStreamId);
+
   return (
     <main className="relative w-screen h-screen overflow-hidden bg-app-bg">
       {/* Layer 0: Full-screen map background or Live Feed */}
       <MapBackground frameBase64={frameBase64} />
 
       {/* Loading state */}
-      {isLoading && !data && <LoadingOverlay />}
+      {(isStreamsLoading || (isLoading && !data && activeStreamId)) && <LoadingOverlay />}
 
       {/* Error fallback */}
       {error && !data && (
@@ -69,20 +72,21 @@ export default function Page() {
       )}
 
       {/* Layer 1: Sidebar */}
-      <Sidebar activeNav={activeNav} onNavChange={setActiveNav} />
+      <Sidebar />
 
       {/* Layer 2: Header */}
-      {data && (
-        <Header
-          locationName={data.locationName}
-          coordinates={data.coordinates}
-          activeCamera={data.activeCamera}
-          totalCameras={data.totalCameras}
-          isLoading={isLoading}
-          onRefetch={refetch}
-          lastFetchedAt={lastFetchedAt}
-        />
-      )}
+      <Header
+        locationName={selectedStream?.location_name ?? data?.locationName ?? "No Stream Selected"}
+        coordinates={data?.coordinates ?? { lat: -6.2088, lng: 106.8456 }}
+        activeCamera={data?.activeCamera ?? (activeStreamId ? 1 : 0)}
+        totalCameras={streams.filter((s) => s.status === "active").length || data?.totalCameras || 0}
+        isLoading={isLoading || isStreamsLoading}
+        onRefetch={refetch}
+        lastFetchedAt={lastFetchedAt}
+        streams={streams}
+        selectedStreamId={activeStreamId}
+        onStreamChange={(id) => setActiveStreamId(id)}
+      />
 
       {/* Layer 3: Floating panels */}
       {data && (
@@ -96,8 +100,29 @@ export default function Page() {
           {/* Footer info */}
           <div className="text-center pb-1">
             <p className="text-xs text-text-secondary/50 font-mono">
-              ML Model: YOLOv9-Urban · Inference: ~12ms
+              ML Model: YOLOv8n · Python FastAPI Backend
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* No stream selected state */}
+      {!activeStreamId && !isStreamsLoading && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
+          <div className="bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl p-8 text-center max-w-sm pointer-events-auto">
+            <div className="w-14 h-14 rounded-2xl bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">📹</span>
+            </div>
+            <p className="text-text-primary font-semibold mb-2">No Stream Active</p>
+            <p className="text-sm text-text-secondary mb-4">
+              Add a CCTV/RTSP/YouTube stream to start monitoring.
+            </p>
+            <a
+              href="/streams"
+              className="inline-block px-4 py-2 bg-accent-primary/20 border border-accent-primary/30 rounded-xl text-sm text-accent-soft hover:bg-accent-primary/30 transition-colors"
+            >
+              Manage Streams →
+            </a>
           </div>
         </div>
       )}

@@ -15,9 +15,6 @@ body {
   background-color: #1a171a;
   color: #ffffff;
   font-family: var(--font-space-grotesk), sans-serif;
-  overflow: hidden;
-  height: 100vh;
-  width: 100vw;
 }
 
 /* Scrollbars */
@@ -36,4 +33,11 @@ body {
   .border-white\/8 {
     border-color: rgba(255, 255, 255, 0.08);
   }
+  /* Dashboard uses overflow hidden, inner pages use scroll */
+  .page-dashboard {
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
 }
+

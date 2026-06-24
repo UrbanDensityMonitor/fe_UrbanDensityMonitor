@@ -1,27 +1,54 @@
 // src/presentation/components/Sidebar.tsx
 "use client";
 
-import { Home, Map, BarChart3, Settings, Radar } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  Home,
+  Video,
+  BellRing,
+  History,
+  BarChart3,
+  Users,
+  Radar,
+  LogOut,
+  type LucideIcon,
+} from "lucide-react";
+import { useAuth } from "./AuthProvider";
+import { authService } from "@/infrastructure/services/authService";
+import { useRouter } from "next/navigation";
 
 interface NavItem {
   id: string;
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
+  href: string;
+  icon: LucideIcon;
   label: string;
+  adminOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { id: "home", icon: Home, label: "Home" },
-  { id: "map", icon: Map, label: "Map" },
-  { id: "analytics", icon: BarChart3, label: "Analytics" },
-  { id: "settings", icon: Settings, label: "Settings" },
+  { id: "dashboard", href: "/", icon: Home, label: "Dashboard" },
+  { id: "streams", href: "/streams", icon: Video, label: "Streams" },
+  { id: "alerts", href: "/alerts", icon: BellRing, label: "Alerts" },
+  { id: "history", href: "/history", icon: History, label: "History" },
+  { id: "analytics", href: "/analytics", icon: BarChart3, label: "Analytics" },
+  { id: "admin-users", href: "/admin/users", icon: Users, label: "Users", adminOnly: true },
 ];
 
-interface SidebarProps {
-  activeNav: string;
-  onNavChange: (id: string) => void;
-}
+export function Sidebar() {
+  const pathname = usePathname();
+  const { role } = useAuth();
+  const router = useRouter();
 
-export function Sidebar({ activeNav, onNavChange }: SidebarProps) {
+  const visibleItems = navItems.filter(
+    (item) => !item.adminOnly || role === "admin"
+  );
+
+  const handleLogout = async () => {
+    await authService.signOut();
+    router.push("/auth");
+  };
+
   return (
     <aside className="fixed left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-2.5">
       {/* Logo mark */}
@@ -32,12 +59,15 @@ export function Sidebar({ activeNav, onNavChange }: SidebarProps) {
       <div className="w-full h-px bg-white/10 my-1" />
 
       {/* Nav items */}
-      {navItems.map((item) => {
-        const isActive = activeNav === item.id;
+      {visibleItems.map((item) => {
+        const isActive =
+          item.href === "/"
+            ? pathname === "/"
+            : pathname.startsWith(item.href);
         return (
-          <button
+          <Link
             key={item.id}
-            onClick={() => onNavChange(item.id)}
+            href={item.href}
             className={`
               group relative w-10 h-10 rounded-xl flex items-center justify-center
               transition-all duration-200
@@ -53,7 +83,7 @@ export function Sidebar({ activeNav, onNavChange }: SidebarProps) {
             <item.icon size={17} strokeWidth={isActive ? 2.5 : 2} />
 
             {/* Tooltip */}
-            <span className="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-panel-bg border border-white/10 text-xs font-medium text-text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150">
+            <span className="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-panel-bg border border-white/10 text-xs font-medium text-text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
               {item.label}
             </span>
 
@@ -61,9 +91,26 @@ export function Sidebar({ activeNav, onNavChange }: SidebarProps) {
             {isActive && (
               <span className="absolute -right-0.5 -top-0.5 w-2 h-2 rounded-full bg-accent-primary" />
             )}
-          </button>
+          </Link>
         );
       })}
+
+      {/* Spacer */}
+      <div className="flex-1 min-h-4" />
+      <div className="w-full h-px bg-white/10 my-1" />
+
+      {/* Logout */}
+      <button
+        onClick={handleLogout}
+        title="Sign Out"
+        aria-label="Sign Out"
+        className="group relative w-10 h-10 rounded-xl flex items-center justify-center text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+      >
+        <LogOut size={16} strokeWidth={2} />
+        <span className="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-panel-bg border border-white/10 text-xs font-medium text-text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
+          Sign Out
+        </span>
+      </button>
     </aside>
   );
 }

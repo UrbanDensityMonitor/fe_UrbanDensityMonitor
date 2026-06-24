@@ -1,27 +1,30 @@
 // src/infrastructure/services/trafficWebSocketService.ts
+// Aligned with api_documentation.md
 
 import { authService } from "./authService";
 
+/** Exact payload shape from WS /ws/live/{stream_id} per API docs */
 export type FrameUpdateMessage = {
   type: "frame_update";
   stream_id: string;
-  timestamp: string;
   counts: {
     person: number;
     motorcycle: number;
     car: number;
     bus: number;
     truck: number;
-    vehicle_total: number;
   };
   person_vehicle_ratio: number;
   density_status: string;
+  /** base64 string (with or without data URI prefix) */
+  frame_base64?: string;
+  /** Alias — backend may send as "frame" too */
+  frame?: string;
   alert: {
     triggered: boolean;
     type: string;
     message: string;
   } | null;
-  frame: string; // base64
 };
 
 type MessageHandler = (data: FrameUpdateMessage) => void;
@@ -34,47 +37,65 @@ class TrafficWebSocketService {
   private streamId: string | null = null;
 
   async connect(streamId: string) {
+    // Already connected to the same stream — do nothing
     if (this.ws?.readyState === WebSocket.OPEN && this.streamId === streamId) return;
-    
+
+    // If switching streams, close the old connection first
+    if (this.ws && this.streamId !== streamId) {
+      this.ws.close();
+      this.ws = null;
+    }
+
     this.streamId = streamId;
     this.isConnecting = true;
-    
+
     try {
       const session = await authService.getSession();
       const token = session?.access_token;
-      
-      const wsUrl = process.env.NEXT_PUBLIC_WS_API_URL || 'ws://localhost:8000';
-      this.ws = new WebSocket(`${wsUrl}/ws/live/${streamId}?token=${token}`);
+
+      const wsUrl =
+        process.env.NEXT_PUBLIC_WS_API_URL || "ws://localhost:8000";
+      // Docs: wss://<host>/ws/live/{stream_id}
+      // Token passed as query param since WS can't have custom headers in browsers
+      const url = token
+        ? `${wsUrl}/ws/live/${streamId}?token=${token}`
+        : `${wsUrl}/ws/live/${streamId}`;
+
+      this.ws = new WebSocket(url);
 
       this.ws.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'frame_update') {
-            this.handlers.forEach(handler => handler(data));
+          const data = JSON.parse(event.data) as FrameUpdateMessage;
+          if (data.type === "frame_update") {
+            this.handlers.forEach((handler) => handler(data));
           }
         } catch (err) {
-          console.error("Failed to parse websocket message", err);
+          console.error("[WS] Failed to parse message:", err);
         }
       };
 
-      this.ws.onclose = () => {
+      this.ws.onclose = (event) => {
         this.isConnecting = false;
+        console.log(`[WS] Closed (code: ${event.code}) — scheduling reconnect…`);
         this.scheduleReconnect();
       };
 
       this.ws.onerror = (err) => {
-        console.error("WebSocket error", err);
-        // Will trigger onclose
+        console.error("[WS] Error:", err);
+        // onclose will fire after onerror
       };
 
       this.ws.onopen = () => {
         this.isConnecting = false;
-        console.log("WebSocket connected for stream:", streamId);
-        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+        console.log("[WS] Connected to stream:", streamId);
+        if (this.reconnectTimer) {
+          clearTimeout(this.reconnectTimer);
+          this.reconnectTimer = null;
+        }
       };
-
     } catch (err) {
       this.isConnecting = false;
+      console.error("[WS] Connection failed:", err);
       this.scheduleReconnect();
     }
   }
@@ -83,14 +104,17 @@ class TrafficWebSocketService {
     if (!this.streamId) return;
     if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
     this.reconnectTimer = setTimeout(() => {
-      console.log("Attempting to reconnect WebSocket...");
+      console.log("[WS] Reconnecting…");
       if (this.streamId) this.connect(this.streamId);
     }, 5000);
   }
 
   disconnect() {
     this.streamId = null;
-    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     if (this.ws) {
       this.ws.close();
       this.ws = null;
