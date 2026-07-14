@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authService } from "@/infrastructure/services/authService";
-import { Radar, Eye, EyeOff, Mail, Lock, User, ArrowRight } from "lucide-react";
+import { Radar, Eye, EyeOff, Mail, Lock, User, ArrowRight, Shield } from "lucide-react";
 
 export default function AuthPage() {
   const router = useRouter();
@@ -60,10 +60,10 @@ export default function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-app-bg relative overflow-hidden">
       {/* Background decoration */}
       <div
-        className="absolute inset-0 opacity-30"
+        className="absolute inset-0 opacity-20"
         style={{
           backgroundImage:
-            "linear-gradient(rgba(232,121,249,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(232,121,249,0.05) 1px, transparent 1px)",
+            "linear-gradient(rgba(0,212,170,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,170,0.04) 1px, transparent 1px)",
           backgroundSize: "48px 48px",
         }}
       />
@@ -71,36 +71,43 @@ export default function AuthPage() {
         className="absolute top-0 left-1/2 -translate-x-1/2 w-2/3 h-64 blur-3xl pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at top, rgba(232,121,249,0.12) 0%, transparent 70%)",
+            "radial-gradient(ellipse at top, rgba(0,212,170,0.1) 0%, transparent 70%)",
+        }}
+      />
+      <div
+        className="absolute bottom-0 right-1/4 w-1/2 h-48 blur-3xl pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at bottom, rgba(14,165,233,0.08) 0%, transparent 70%)",
         }}
       />
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-md px-4">
-        <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+      <div className="relative z-10 w-full max-w-md px-4 animate-fade-in">
+        <div className="bg-surface-1 border border-border-default rounded-3xl p-8 shadow-panel">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-accent-primary/20 border border-accent-primary/30 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(232,121,249,0.2)]">
+            <div className="w-14 h-14 rounded-2xl bg-accent-muted flex items-center justify-center mb-4 shadow-card-glow">
               <Radar size={26} className="text-accent-primary" />
             </div>
             <h1 className="text-2xl font-bold text-text-primary tracking-tight">
               Urban Density Monitor
             </h1>
-            <p className="text-sm text-text-secondary mt-1">
+            <p className="text-sm text-text-muted mt-1.5">
               {isLogin ? "Sign in to your account" : "Create a new account"}
             </p>
           </div>
 
           {/* Error / Success banners */}
           {error && (
-            <div className="mb-5 flex items-start gap-2 bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-xl text-sm">
-              <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-red-400 flex-shrink-0 mt-1.5" />
+            <div className="mb-5 flex items-start gap-2.5 bg-status-danger/10 border border-status-danger/20 text-status-danger p-3.5 rounded-xl text-sm animate-slide-up">
+              <span className="w-1.5 h-1.5 rounded-full bg-status-danger flex-shrink-0 mt-1.5" />
               {error}
             </div>
           )}
           {success && (
-            <div className="mb-5 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 p-3 rounded-xl text-sm">
-              <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0 mt-1.5" />
+            <div className="mb-5 flex items-start gap-2.5 bg-status-success/10 border border-status-success/20 text-status-success p-3.5 rounded-xl text-sm animate-slide-up">
+              <span className="w-1.5 h-1.5 rounded-full bg-status-success flex-shrink-0 mt-1.5" />
               {success}
             </div>
           )}
@@ -109,13 +116,13 @@ export default function AuthPage() {
             {/* Full Name (register only) */}
             {!isLogin && (
               <div>
-                <label className="block text-xs font-medium text-text-secondary mb-1.5 uppercase tracking-wider">
+                <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                   Full Name
                 </label>
                 <div className="relative">
                   <User
                     size={15}
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
                   />
                   <input
                     id="auth-fullname"
@@ -124,7 +131,7 @@ export default function AuthPage() {
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="John Doe"
                     maxLength={100}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-text-primary placeholder-text-secondary/40 focus:outline-none focus:border-accent-primary/50 focus:bg-white/8 transition-all duration-200"
+                    className="w-full bg-surface-2 border border-border-default rounded-xl pl-10 pr-4 py-2.5 text-sm text-text-primary placeholder-text-muted/50 focus:outline-none focus:border-accent-primary/50 focus:bg-surface-3 transition-all duration-200"
                     required={!isLogin}
                   />
                 </div>
@@ -133,13 +140,13 @@ export default function AuthPage() {
 
             {/* Email */}
             <div>
-              <label className="block text-xs font-medium text-text-secondary mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                 Email Address
               </label>
               <div className="relative">
                 <Mail
                   size={15}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
                 />
                 <input
                   id="auth-email"
@@ -147,7 +154,7 @@ export default function AuthPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-text-primary placeholder-text-secondary/40 focus:outline-none focus:border-accent-primary/50 focus:bg-white/8 transition-all duration-200"
+                  className="w-full bg-surface-2 border border-border-default rounded-xl pl-10 pr-4 py-2.5 text-sm text-text-primary placeholder-text-muted/50 focus:outline-none focus:border-accent-primary/50 focus:bg-surface-3 transition-all duration-200"
                   required
                 />
               </div>
@@ -155,13 +162,13 @@ export default function AuthPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-medium text-text-secondary mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-medium text-text-muted mb-1.5 uppercase tracking-wider">
                 Password
               </label>
               <div className="relative">
                 <Lock
                   size={15}
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none"
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
                 />
                 <input
                   id="auth-password"
@@ -170,13 +177,13 @@ export default function AuthPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder={isLogin ? "••••••••" : "Min. 8 characters"}
                   minLength={isLogin ? 6 : 8}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-10 py-2.5 text-sm text-text-primary placeholder-text-secondary/40 focus:outline-none focus:border-accent-primary/50 focus:bg-white/8 transition-all duration-200"
+                  className="w-full bg-surface-2 border border-border-default rounded-xl pl-10 pr-10 py-2.5 text-sm text-text-primary placeholder-text-muted/50 focus:outline-none focus:border-accent-primary/50 focus:bg-surface-3 transition-all duration-200"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary transition-colors"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -189,11 +196,11 @@ export default function AuthPage() {
               id="auth-submit"
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-accent-primary/20 hover:bg-accent-primary/30 border border-accent-primary/40 hover:border-accent-primary/60 text-accent-soft font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-2 group"
+              className="w-full flex items-center justify-center gap-2 bg-accent-gradient hover:opacity-90 text-white font-semibold py-2.5 px-4 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed mt-2 group shadow-card-glow"
             >
               {loading ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-accent-primary/30 border-t-accent-primary rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   Please wait…
                 </>
               ) : (
@@ -209,7 +216,7 @@ export default function AuthPage() {
           </form>
 
           {/* Toggle */}
-          <div className="mt-6 text-center text-sm text-text-secondary">
+          <div className="mt-6 text-center text-sm text-text-muted">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               type="button"
@@ -218,7 +225,7 @@ export default function AuthPage() {
                 setError(null);
                 setSuccess(null);
               }}
-              className="text-accent-soft hover:text-accent-primary font-semibold transition-colors"
+              className="text-accent-primary hover:text-accent-hover font-semibold transition-colors"
             >
               {isLogin ? "Sign up" : "Sign in"}
             </button>
@@ -226,7 +233,7 @@ export default function AuthPage() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-text-secondary/40 mt-4">
+        <p className="text-center text-xs text-text-muted/40 mt-4">
           Urban Density Monitor · ML Vision Dashboard · v3.0
         </p>
       </div>

@@ -1,10 +1,11 @@
-/* src/app/globals.css */
+/* src/app/globals.css — Industrial SaaS Theme */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --font-space-grotesk: "Space Grotesk", sans-serif;
+  --font-inter: "Inter", system-ui, sans-serif;
+  --sidebar-width: 260px;
 }
 
 * {
@@ -12,28 +13,45 @@
 }
 
 body {
-  background-color: #1a171a;
-  color: #ffffff;
-  font-family: var(--font-space-grotesk), sans-serif;
+  background-color: #0F1117;
+  color: #F1F5F9;
+  font-family: var(--font-inter), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbars */
+/* Scrollbars — sleek industrial */
 ::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(232, 121, 249, 0.3);
-  border-radius: 2px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+/* Select option styling for dark backgrounds */
+select option {
+  background-color: #1C2333;
+  color: #F1F5F9;
+}
+
+/* Date input styling */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
 }
 
 @layer utilities {
   .border-white\/8 {
     border-color: rgba(255, 255, 255, 0.08);
   }
-  /* Dashboard uses overflow hidden, inner pages use scroll */
+
   .page-dashboard {
     overflow: hidden;
     height: 100vh;
@@ -41,6 +59,74 @@ body {
   }
 }
 
+/* Map tile dark mode filter */
 .dark-map-tiles {
   filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+/* Accent gradient text */
+.text-gradient {
+  background: linear-gradient(135deg, #00D4AA 0%, #0EA5E9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card hover micro-interaction */
+.card-interactive {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4), 0 0 0 1px rgba(0,212,170,0.1);
+}
+
+/* Subtle gradient stripe for cards */
+.card-accent-stripe {
+  position: relative;
+  overflow: hidden;
+}
+.card-accent-stripe::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #00D4AA 0%, #0EA5E9 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.card-accent-stripe:hover::before {
+  opacity: 1;
+}
+
+/* Sidebar nav active indicator */
+.nav-active-bar {
+  position: relative;
+}
+.nav-active-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, #00D4AA 0%, #0EA5E9 100%);
+}
+
+/* Pulse dot animation */
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.5);
+  }
+}
+.animate-pulse-dot {
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

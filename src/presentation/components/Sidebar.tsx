@@ -12,6 +12,7 @@ import {
   Users,
   Radar,
   LogOut,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "./AuthProvider";
@@ -37,7 +38,7 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const router = useRouter();
 
   const visibleItems = navItems.filter(
@@ -50,67 +51,103 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-2.5">
-      {/* Logo mark */}
-      <div className="w-9 h-9 rounded-xl bg-accent-primary/20 border border-accent-primary/30 flex items-center justify-center mb-1">
-        <Radar size={16} className="text-accent-primary" strokeWidth={2} />
+    <aside className="fixed left-0 top-0 bottom-0 z-50 w-[260px] bg-surface-1 border-r border-border-default flex flex-col">
+      {/* Logo / Brand */}
+      <div className="px-5 py-5 border-b border-border-subtle">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 rounded-xl bg-accent-muted flex items-center justify-center shadow-inner-glow transition-all duration-300 group-hover:shadow-card-glow">
+            <Radar size={20} className="text-accent-primary" strokeWidth={2} />
+          </div>
+          <div>
+            <h1 className="text-[15px] font-bold text-text-primary leading-none tracking-tight">
+              Urban Density
+            </h1>
+            <p className="text-[11px] text-text-muted mt-0.5 font-medium tracking-wide uppercase">
+              ML Vision
+            </p>
+          </div>
+        </Link>
       </div>
 
-      <div className="w-full h-px bg-white/10 my-1" />
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <p className="px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+          Main Menu
+        </p>
+        {visibleItems.map((item) => {
+          const isActive =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`
+                group relative flex items-center gap-3 px-3 py-2.5 rounded-xl
+                transition-all duration-200 text-sm font-medium
+                ${
+                  isActive
+                    ? "bg-accent-muted text-accent-primary nav-active-bar"
+                    : "text-text-secondary hover:text-text-primary hover:bg-white/[0.04]"
+                }
+              `}
+              title={item.label}
+            >
+              <item.icon
+                size={18}
+                strokeWidth={isActive ? 2.2 : 1.8}
+                className={`flex-shrink-0 transition-colors ${
+                  isActive ? "text-accent-primary" : "text-text-muted group-hover:text-text-secondary"
+                }`}
+              />
+              <span className="flex-1">{item.label}</span>
 
-      {/* Nav items */}
-      {visibleItems.map((item) => {
-        const isActive =
-          item.href === "/"
-            ? pathname === "/"
-            : pathname.startsWith(item.href);
-        return (
-          <Link
-            key={item.id}
-            href={item.href}
-            className={`
-              group relative w-10 h-10 rounded-xl flex items-center justify-center
-              transition-all duration-200
-              ${
-                isActive
-                  ? "bg-accent-primary/20 text-accent-primary border border-accent-primary/30"
-                  : "text-text-secondary hover:text-text-primary hover:bg-white/5"
-              }
-            `}
-            title={item.label}
-            aria-label={item.label}
-          >
-            <item.icon size={17} strokeWidth={isActive ? 2.5 : 2} />
+              {/* Active arrow indicator */}
+              {isActive && (
+                <ChevronRight size={14} className="text-accent-primary/60" />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
 
-            {/* Tooltip */}
-            <span className="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-panel-bg border border-white/10 text-xs font-medium text-text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
-              {item.label}
+      {/* Bottom section — User + Logout */}
+      <div className="px-3 py-4 border-t border-border-subtle space-y-2">
+        {/* System Status */}
+        <div className="flex items-center gap-2 px-3 py-2">
+          <span className="flex items-center gap-1.5 text-xs text-status-success font-medium">
+            <span className="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse-dot" />
+            System Online
+          </span>
+        </div>
+
+        {/* User Info */}
+        <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-surface-2">
+          <div className="w-8 h-8 rounded-lg bg-accent-muted flex items-center justify-center">
+            <span className="text-xs font-bold text-accent-primary">
+              {user?.email?.charAt(0).toUpperCase() ?? "U"}
             </span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-text-primary truncate">
+              {user?.email?.split("@")[0] ?? "User"}
+            </p>
+            <p className="text-[10px] text-text-muted capitalize">{role ?? "user"}</p>
+          </div>
+        </div>
 
-            {/* Active indicator dot */}
-            {isActive && (
-              <span className="absolute -right-0.5 -top-0.5 w-2 h-2 rounded-full bg-accent-primary" />
-            )}
-          </Link>
-        );
-      })}
-
-      {/* Spacer */}
-      <div className="flex-1 min-h-4" />
-      <div className="w-full h-px bg-white/10 my-1" />
-
-      {/* Logout */}
-      <button
-        onClick={handleLogout}
-        title="Sign Out"
-        aria-label="Sign Out"
-        className="group relative w-10 h-10 rounded-xl flex items-center justify-center text-text-secondary hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
-      >
-        <LogOut size={16} strokeWidth={2} />
-        <span className="absolute left-full ml-3 px-2.5 py-1 rounded-lg bg-panel-bg border border-white/10 text-xs font-medium text-text-primary whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-150 z-50">
-          Sign Out
-        </span>
-      </button>
+        {/* Logout */}
+        <button
+          onClick={handleLogout}
+          title="Sign Out"
+          aria-label="Sign Out"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-text-secondary hover:text-status-danger hover:bg-red-500/[0.08] transition-all duration-200"
+        >
+          <LogOut size={17} strokeWidth={1.8} />
+          <span>Sign Out</span>
+        </button>
+      </div>
     </aside>
   );
 }

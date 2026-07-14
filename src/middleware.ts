@@ -9,6 +9,7 @@ export function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isAuthRoute = pathname.startsWith('/auth');
+  const isLandingRoute = pathname === '/landing';
   const isProtectedRoute =
     pathname === '/' ||
     pathname.startsWith('/admin') ||
@@ -17,14 +18,14 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/alerts') ||
     pathname.startsWith('/analytics');
 
-  // Redirect to login if accessing protected route without valid token
+  // Redirect to landing page if accessing protected route without valid token
   if (isProtectedRoute && !isAuthenticated) {
-    const loginUrl = new URL('/auth', request.url);
+    const loginUrl = new URL('/landing', request.url);
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect to dashboard if already authenticated and visiting auth page
-  if (isAuthRoute && isAuthenticated) {
+  // Redirect to dashboard if already authenticated and visiting auth or landing page
+  if ((isAuthRoute || isLandingRoute) && isAuthenticated) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
@@ -36,6 +37,7 @@ export const config = {
     '/',
     '/admin/:path*',
     '/auth',
+    '/landing',
     '/streams/:path*',
     '/history/:path*',
     '/alerts/:path*',
