@@ -64,7 +64,11 @@ export function Header({
       <div className="flex items-center justify-between bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-3">
         {/* Left — Brand */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
+          <div 
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => onStreamChange && onStreamChange("")}
+            title="Kembali ke Menu Utama"
+          >
             <div className="w-8 h-8 rounded-xl bg-accent-primary/20 border border-accent-primary/30 flex items-center justify-center">
               <Radar size={16} className="text-accent-primary" />
             </div>

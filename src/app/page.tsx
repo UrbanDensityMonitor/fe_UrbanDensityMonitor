@@ -26,8 +26,7 @@ export default function Page() {
       .getStreams()
       .then((data) => {
         setStreams(data);
-        const firstActive = data.find((s) => s.status === "active");
-        if (firstActive) setActiveStreamId(firstActive.id);
+        // Removed auto-select so user can see the grid menu
       })
       .catch((err) => console.error("Failed to load streams:", err))
       .finally(() => setIsStreamsLoading(false));
@@ -106,23 +105,38 @@ export default function Page() {
         </div>
       )}
 
-      {/* No stream selected state */}
+      {/* CCTV Selection Menu Grid */}
       {!activeStreamId && !isStreamsLoading && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
-          <div className="bg-black/70 backdrop-blur-md border border-white/10 rounded-2xl p-8 text-center max-w-sm pointer-events-auto">
-            <div className="w-14 h-14 rounded-2xl bg-accent-primary/10 border border-accent-primary/20 flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">📹</span>
+        <div className="fixed inset-0 z-40 p-6 sm:p-12 md:pl-32 overflow-y-auto pointer-events-auto custom-scrollbar bg-black/40 backdrop-blur-sm">
+          <div className="max-w-[1000px] mt-24 pb-20">
+            <h2 className="text-[18px] font-bold text-[#ccc] mb-4 flex items-center gap-2">
+              <span className="text-xl">🎥</span> Daftar CCTV dari Database
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {streams.map((stream) => (
+                <div
+                  key={stream.id}
+                  onClick={() => setActiveStreamId(stream.id)}
+                  className="bg-[#2a2a2a] border border-[#3a3a3a] rounded-lg p-3 cursor-pointer transition-colors duration-150 hover:bg-[#333]"
+                >
+                  <div className="text-[13px] font-bold text-[#eee] mb-1 leading-tight flex items-center justify-between gap-2">
+                    <span className="truncate" title={stream.location_name}>{stream.location_name}</span>
+                    <span className="inline-block text-[10px] px-1.5 py-[2px] rounded-full bg-[#2ecc71] text-black font-semibold flex-shrink-0">
+                      AI
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-[#888] capitalize">
+                    {stream.stream_type}
+                  </div>
+                </div>
+              ))}
             </div>
-            <p className="text-text-primary font-semibold mb-2">No Stream Active</p>
-            <p className="text-sm text-text-secondary mb-4">
-              Add a CCTV/RTSP/YouTube stream to start monitoring.
-            </p>
-            <a
-              href="/streams"
-              className="inline-block px-4 py-2 bg-accent-primary/20 border border-accent-primary/30 rounded-xl text-sm text-accent-soft hover:bg-accent-primary/30 transition-colors"
-            >
-              Manage Streams →
-            </a>
+            
+            {streams.length === 0 && (
+              <div className="text-center p-8 bg-[#2a2a2a] rounded-lg border border-[#3a3a3a] mt-4">
+                <p className="text-[#888] text-sm">Belum ada CCTV di database.</p>
+              </div>
+            )}
           </div>
         </div>
       )}
