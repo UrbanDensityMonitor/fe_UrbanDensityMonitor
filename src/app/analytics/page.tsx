@@ -120,17 +120,7 @@ export default function AnalyticsPage() {
       minute: "2-digit",
     }),
     idx: i,
-    person: r.person_count,
     vehicle: r.total_vehicle_count,
-    ratio: Number(r.person_vehicle_ratio),
-  }));
-
-  // Scatter: person_count vs total_vehicle_count, colored by status
-  const scatterData = history.map((r) => ({
-    x: r.total_vehicle_count,
-    y: r.person_count,
-    status: r.density_status,
-    ratio: Number(r.person_vehicle_ratio),
   }));
 
   // Distribution pie
@@ -150,26 +140,39 @@ export default function AnalyticsPage() {
     color: statusColors[name],
   }));
 
-  // Bar chart: avg person/vehicle by hour
-  const byHour: Record<number, { person: number; vehicle: number; count: number }> = {};
+  // Vehicle type breakdown
+  const vehicleTotals = {
+    Mobil: 0,
+    Motor: 0,
+    Bus: 0,
+    Truk: 0,
+  };
+  history.forEach((r) => {
+    vehicleTotals.Mobil += r.car_count;
+    vehicleTotals.Motor += r.motorcycle_count;
+    vehicleTotals.Bus += r.bus_count;
+    vehicleTotals.Truk += r.truck_count;
+  });
+  const vehiclePieData = Object.entries(vehicleTotals).map(([name, value]) => ({
+    name,
+    value,
+    color: name === "Mobil" ? "#60a5fa" : name === "Motor" ? "#34d399" : name === "Bus" ? "#fbbf24" : "#f87171",
+  }));
+
+  // Bar chart: avg vehicle by hour
+  const byHour: Record<number, { vehicle: number; count: number }> = {};
   history.forEach((r) => {
     const h = new Date(r.recorded_at).getHours();
-    if (!byHour[h]) byHour[h] = { person: 0, vehicle: 0, count: 0 };
-    byHour[h].person += r.person_count;
+    if (!byHour[h]) byHour[h] = { vehicle: 0, count: 0 };
     byHour[h].vehicle += r.total_vehicle_count;
     byHour[h].count++;
   });
   const hourlyData = Array.from({ length: 24 }, (_, h) => ({
     hour: `${String(h).padStart(2, "0")}:00`,
-    avgPerson: byHour[h] ? Math.round(byHour[h].person / byHour[h].count) : 0,
     avgVehicle: byHour[h] ? Math.round(byHour[h].vehicle / byHour[h].count) : 0,
   }));
 
   // KPIs
-  const avgPerson =
-    history.length > 0
-      ? (history.reduce((s, r) => s + r.person_count, 0) / history.length).toFixed(1)
-      : "—";
   const avgVehicle =
     history.length > 0
       ? (history.reduce((s, r) => s + r.total_vehicle_count, 0) / history.length).toFixed(1)
@@ -225,20 +228,13 @@ export default function AnalyticsPage() {
         {!isLoading && (
           <>
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <KpiCard
                 label="Total Records"
                 value={history.length.toLocaleString()}
                 sub="in selected range"
                 icon={<BarChart3 size={16} />}
                 color="#E879F9"
-              />
-              <KpiCard
-                label="Avg. Person Count"
-                value={avgPerson}
-                sub="per frame"
-                icon={<Users size={16} />}
-                color="#34d399"
               />
               <KpiCard
                 label="Avg. Vehicle Count"
@@ -270,7 +266,7 @@ export default function AnalyticsPage() {
                 <div className="lg:col-span-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-5">
                   <h2 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
                     <TrendingUp size={14} className="text-accent-primary" />
-                    Person & Vehicle Trend (Last 100 Records)
+                    Vehicle Trend (Last 100 Records)
                   </h2>
                   <ResponsiveContainer width="100%" height={220}>
                     <LineChart data={trendData} style={CHART_STYLE}>
@@ -296,14 +292,6 @@ export default function AnalyticsPage() {
                       />
                       <Line
                         type="monotone"
-                        dataKey="person"
-                        stroke="#E879F9"
-                        strokeWidth={2}
-                        dot={false}
-                        name="Person"
-                      />
-                      <Line
-                        type="monotone"
                         dataKey="vehicle"
                         stroke="#60a5fa"
                         strokeWidth={2}
@@ -312,95 +300,6 @@ export default function AnalyticsPage() {
                       />
                     </LineChart>
                   </ResponsiveContainer>
-                </div>
-
-                {/* Scatter Plot */}
-                <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-5">
-                  <h2 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-sm bg-accent-primary/60" />
-                    Cluster Scatter: Vehicle vs Person
-                  </h2>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <ScatterChart style={CHART_STYLE}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="rgba(255,255,255,0.05)"
-                      />
-                      <XAxis
-                        type="number"
-                        dataKey="x"
-                        name="Total Vehicles"
-                        tick={{ fill: "#a3a3a3", fontSize: 10 }}
-                        axisLine={false}
-                        tickLine={false}
-                        label={{
-                          value: "Vehicles",
-                          position: "insideBottom",
-                          fill: "#a3a3a3",
-                          fontSize: 10,
-                          offset: -2,
-                        }}
-                      />
-                      <YAxis
-                        type="number"
-                        dataKey="y"
-                        name="Person Count"
-                        tick={{ fill: "#a3a3a3", fontSize: 10 }}
-                        axisLine={false}
-                        tickLine={false}
-                        label={{
-                          value: "Person",
-                          angle: -90,
-                          position: "insideLeft",
-                          fill: "#a3a3a3",
-                          fontSize: 10,
-                        }}
-                      />
-                      <Tooltip
-                        cursor={{ strokeDasharray: "3 3" }}
-                        {...tooltipStyle}
-                        content={({ active, payload }) => {
-                          if (!active || !payload?.length) return null;
-                          const d = payload[0].payload;
-                          return (
-                            <div className="bg-panel-bg border border-white/10 rounded-xl px-3 py-2 text-xs text-text-primary">
-                              <p>Vehicles: {d.x}</p>
-                              <p>Person: {d.y}</p>
-                              <p
-                                style={{
-                                  color: statusColors[d.status] ?? "#fff",
-                                }}
-                              >
-                                {d.status}
-                              </p>
-                            </div>
-                          );
-                        }}
-                      />
-                      <Scatter name="Records" data={scatterData}>
-                        {scatterData.map((entry, index) => (
-                          <Cell
-                            key={index}
-                            fill={statusColors[entry.status] ?? "#a3a3a3"}
-                            fillOpacity={0.7}
-                          />
-                        ))}
-                      </Scatter>
-                    </ScatterChart>
-                  </ResponsiveContainer>
-
-                  {/* Legend */}
-                  <div className="flex flex-wrap gap-3 mt-3">
-                    {Object.entries(statusColors).map(([label, color]) => (
-                      <div key={label} className="flex items-center gap-1.5 text-xs text-text-secondary">
-                        <span
-                          className="w-2.5 h-2.5 rounded-sm"
-                          style={{ background: color }}
-                        />
-                        {label}
-                      </div>
-                    ))}
-                  </div>
                 </div>
 
                 {/* Distribution Pie */}
@@ -452,11 +351,60 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
 
+                {/* Vehicle Type Distribution */}
+                <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-5">
+                  <h2 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-accent-primary/60" />
+                    Vehicle Type Breakdown
+                  </h2>
+                  <div className="flex items-center gap-6">
+                    <ResponsiveContainer width={160} height={160}>
+                      <PieChart>
+                        <Pie
+                          data={vehiclePieData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={48}
+                          outerRadius={72}
+                          paddingAngle={3}
+                          dataKey="value"
+                        >
+                          {vehiclePieData.map((entry, i) => (
+                            <Cell key={i} fill={entry.color} fillOpacity={0.85} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          {...tooltipStyle}
+                          formatter={(value, name) => [value, name]}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="flex flex-col gap-2.5">
+                      {vehiclePieData.map(({ name, value, color }) => (
+                        <div key={name} className="flex items-center gap-2.5">
+                          <span
+                            className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+                            style={{ background: color }}
+                          />
+                          <div>
+                            <p className="text-xs font-medium text-text-primary leading-none">
+                              {name}
+                            </p>
+                            <p className="text-xs text-text-secondary/60 mt-0.5">
+                              {value.toLocaleString("id-ID")} units
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Hourly Bar Chart */}
                 <div className="lg:col-span-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl p-5">
                   <h2 className="text-sm font-semibold text-text-primary mb-4 flex items-center gap-2">
                     <BarChart3 size={14} className="text-accent-primary" />
-                    Average Activity by Hour of Day
+                    Average Vehicle Activity by Hour of Day
                   </h2>
                   <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={hourlyData} style={CHART_STYLE} barSize={10}>
@@ -479,13 +427,6 @@ export default function AnalyticsPage() {
                       />
                       <Tooltip {...tooltipStyle} />
                       <Legend wrapperStyle={{ fontSize: 11, color: "#a3a3a3" }} />
-                      <Bar
-                        dataKey="avgPerson"
-                        fill="#E879F9"
-                        fillOpacity={0.8}
-                        radius={[4, 4, 0, 0]}
-                        name="Avg Person"
-                      />
                       <Bar
                         dataKey="avgVehicle"
                         fill="#60a5fa"
