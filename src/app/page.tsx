@@ -16,23 +16,34 @@ import { StatsPanel } from "@/presentation/components/StatsPanel";
 import { AlertPanel } from "@/presentation/components/AlertPanel";
 import { LoadingOverlay } from "@/presentation/components/LoadingOverlay";
 
-import { Video, MapPin, Wifi, Zap, Clock } from "lucide-react";
+import { Video, MapPin, Wifi, Zap, Clock, Search, X, ArrowLeft } from "lucide-react";
 
 export default function Page() {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [activeStreamId, setActiveStreamId] = useState<string | null>(null);
   const [isStreamsLoading, setIsStreamsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     streamService
       .getStreams()
       .then((data) => {
         setStreams(data);
-        // Removed auto-select so user can see the grid menu
       })
       .catch((err) => console.error("Failed to load streams:", err))
       .finally(() => setIsStreamsLoading(false));
   }, []);
+
+  // Filter streams by search query (Vercel React best practice: memoized filtering)
+  const filteredStreams = useMemo(() => {
+    if (!searchQuery.trim()) return streams;
+    const q = searchQuery.toLowerCase().trim();
+    return streams.filter(
+      (s) =>
+        s.location_name.toLowerCase().includes(q) ||
+        s.stream_type.toLowerCase().includes(q)
+    );
+  }, [streams, searchQuery]);
 
   // Application layer: inject data via use-case hook (calls infrastructure service)
   const { data, frameBase64, isLoading, error, refetch, lastFetchedAt } =
@@ -57,20 +68,30 @@ export default function Page() {
       <div className="flex-1 ml-[260px] flex flex-col min-h-screen">
         {/* Header */}
         <Header
-          locationName={selectedStream?.location_name ?? data?.locationName ?? "Dashboard Overview"}
+          locationName={
+            selectedStream?.location_name ?? data?.locationName ?? "Dashboard Overview"
+          }
           coordinates={data?.coordinates ?? { lat: -6.2088, lng: 106.8456 }}
           activeCamera={data?.activeCamera ?? (activeStreamId ? 1 : 0)}
-          totalCameras={streams.filter((s) => s.status === "active").length || data?.totalCameras || 0}
+          totalCameras={
+            streams.filter((s) => s.status === "active").length ||
+            data?.totalCameras ||
+            0
+          }
           isLoading={isLoading || isStreamsLoading}
           onRefetch={refetch}
           lastFetchedAt={lastFetchedAt}
           streams={streams}
           selectedStreamId={activeStreamId}
-          onStreamChange={(id) => setActiveStreamId(id)}
+          onStreamChange={(id) => setActiveStreamId(id || null)}
         />
 
-        {/* Loading state */}
-        {(isStreamsLoading || (isLoading && !data && activeStreamId)) && <LoadingOverlay />}
+        {/* Loading state with Back / Cancel button */}
+        {(isStreamsLoading || (isLoading && !data && activeStreamId)) && (
+          <LoadingOverlay
+            onCancel={activeStreamId ? () => setActiveStreamId(null) : undefined}
+          />
+        )}
 
         {/* Error fallback */}
         {error && !data && (
@@ -81,12 +102,20 @@ export default function Page() {
               </div>
               <p className="text-status-danger font-semibold mb-2">Connection Error</p>
               <p className="text-sm text-text-muted mb-4">{error}</p>
-              <button
-                onClick={refetch}
-                className="px-5 py-2.5 bg-accent-muted border border-accent-primary/30 rounded-xl text-sm font-medium text-accent-primary hover:bg-accent-primary/20 transition-all"
-              >
-                Retry Connection
-              </button>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setActiveStreamId(null)}
+                  className="px-4 py-2 bg-surface-2 border border-border-default rounded-xl text-sm font-medium text-text-primary hover:bg-surface-3 transition-all"
+                >
+                  Kembali ke Dashboard
+                </button>
+                <button
+                  onClick={refetch}
+                  className="px-5 py-2.5 bg-accent-muted border border-accent-primary/30 rounded-xl text-sm font-medium text-accent-primary hover:bg-accent-primary/20 transition-all"
+                >
+                  Coba Lagi
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -98,6 +127,17 @@ export default function Page() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in">
               {/* Left column — Live Feed (takes 2 cols) */}
               <div className="lg:col-span-2">
+                {/* Navigation Back Button */}
+                <div className="flex items-center justify-between mb-3">
+                  <button
+                    onClick={() => setActiveStreamId(null)}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface-1 hover:bg-surface-2 border border-border-default hover:border-accent-primary/30 text-xs font-semibold text-text-secondary hover:text-accent-primary transition-all duration-200 shadow-sm group"
+                  >
+                    <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+                    <span>Kembali ke Menu CCTV</span>
+                  </button>
+                </div>
+
                 <div className="h-[420px]">
                   <MapBackground frameBase64={frameBase64} />
                 </div>
@@ -135,34 +175,88 @@ export default function Page() {
           {/* CCTV Selection Menu Grid — when no stream selected */}
           {!activeStreamId && !isStreamsLoading && (
             <div className="animate-fade-in">
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-text-primary tracking-tight">
-                  Select a CCTV Stream
-                </h2>
-                <p className="text-sm text-text-muted mt-1">
-                  Choose a camera feed from the database to begin monitoring
-                </p>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-text-primary tracking-tight">
+                    Pilih Stream CCTV
+                  </h2>
+                  <p className="text-sm text-text-muted mt-1">
+                    Pilih kamera CCTV kota Semarang untuk memulai pemantauan AI
+                  </p>
+                </div>
+
+                {/* Search Bar Input */}
+                <div className="relative w-full md:w-80">
+                  <Search
+                    size={16}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted"
+                  />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Cari jalan / nama CCTV..."
+                    className="w-full bg-surface-1 border border-border-default rounded-xl pl-10 pr-10 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary transition-all shadow-sm"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
+                      title="Hapus pencarian"
+                    >
+                      <X size={15} />
+                    </button>
+                  )}
+                </div>
               </div>
 
-              {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-surface-1 border border-border-default rounded-xl p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-1">Total Cameras</p>
-                  <p className="text-2xl font-bold text-text-primary">{streams.length}</p>
+              {/* Quick Stats & Result Counter */}
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="bg-surface-1 border border-border-default rounded-xl px-4 py-2.5 flex items-center gap-3">
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+                        Total Kamera
+                      </p>
+                      <p className="text-lg font-bold text-text-primary">
+                        {streams.length}
+                      </p>
+                    </div>
+                    <div className="h-6 w-px bg-border-default" />
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted">
+                        Aktif
+                      </p>
+                      <p className="text-lg font-bold text-status-success">
+                        {streams.filter((s) => s.status === "active").length}
+                      </p>
+                    </div>
+                  </div>
+
+                  {searchQuery && (
+                    <div className="text-xs text-text-secondary">
+                      Menampilkan{" "}
+                      <span className="font-bold text-accent-primary">
+                        {filteredStreams.length}
+                      </span>{" "}
+                      dari {streams.length} kamera
+                    </div>
+                  )}
                 </div>
-                <div className="bg-surface-1 border border-border-default rounded-xl p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-1">Active</p>
-                  <p className="text-2xl font-bold text-status-success">{streams.filter(s => s.status === "active").length}</p>
-                </div>
-                <div className="bg-surface-1 border border-border-default rounded-xl p-4">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-text-muted mb-1">Inactive</p>
-                  <p className="text-2xl font-bold text-text-muted">{streams.filter(s => s.status !== "active").length}</p>
-                </div>
+
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="text-xs text-text-muted hover:text-accent-primary underline transition-colors"
+                  >
+                    Reset Pencarian
+                  </button>
+                )}
               </div>
 
               {/* Stream Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {streams.map((stream) => (
+                {filteredStreams.map((stream) => (
                   <div
                     key={stream.id}
                     onClick={() => setActiveStreamId(stream.id)}
@@ -173,7 +267,10 @@ export default function Page() {
                       <Video size={18} className="text-accent-primary" />
                     </div>
 
-                    <h3 className="text-sm font-semibold text-text-primary mb-1 leading-tight truncate" title={stream.location_name}>
+                    <h3
+                      className="text-sm font-semibold text-text-primary mb-1 leading-tight truncate"
+                      title={stream.location_name}
+                    >
                       {stream.location_name}
                     </h3>
 
@@ -181,14 +278,20 @@ export default function Page() {
                       <span className="text-[11px] text-text-muted capitalize font-medium">
                         {stream.stream_type}
                       </span>
-                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                        stream.status === "active"
-                          ? "bg-status-success/10 text-status-success"
-                          : "bg-surface-3 text-text-muted"
-                      }`}>
-                        <span className={`w-1 h-1 rounded-full ${
-                          stream.status === "active" ? "bg-status-success" : "bg-text-muted"
-                        }`} />
+                      <span
+                        className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                          stream.status === "active"
+                            ? "bg-status-success/10 text-status-success"
+                            : "bg-surface-3 text-text-muted"
+                        }`}
+                      >
+                        <span
+                          className={`w-1 h-1 rounded-full ${
+                            stream.status === "active"
+                              ? "bg-status-success"
+                              : "bg-text-muted"
+                          }`}
+                        />
                         {stream.status === "active" ? "AI Ready" : "Offline"}
                       </span>
                     </div>
@@ -196,15 +299,26 @@ export default function Page() {
                 ))}
               </div>
 
-              {streams.length === 0 && (
+              {/* Empty Search Result State */}
+              {filteredStreams.length === 0 && (
                 <div className="text-center p-12 bg-surface-1 rounded-2xl border border-border-default mt-4">
                   <div className="w-16 h-16 rounded-2xl bg-surface-3 flex items-center justify-center mx-auto mb-4">
-                    <Video size={28} className="text-text-muted" strokeWidth={1.5} />
+                    <Search size={28} className="text-text-muted" strokeWidth={1.5} />
                   </div>
-                  <p className="text-text-secondary font-medium">No cameras available</p>
-                  <p className="text-sm text-text-muted mt-1">
-                    Add a CCTV stream in the Streams page to get started.
+                  <p className="text-text-secondary font-medium">
+                    CCTV tidak ditemukan
                   </p>
+                  <p className="text-sm text-text-muted mt-1">
+                    Tidak ada kamera yang cocok dengan kata kunci &quot;{searchQuery}&quot;.
+                  </p>
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="mt-4 px-4 py-2 bg-surface-2 border border-border-default rounded-xl text-xs font-semibold text-text-primary hover:bg-surface-3 transition-colors"
+                    >
+                      Tampilkan Semua CCTV
+                    </button>
+                  )}
                 </div>
               )}
             </div>
