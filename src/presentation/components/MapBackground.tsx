@@ -12,7 +12,7 @@ export function MapBackground({ frameBase64 }: { frameBase64?: string | null }) 
           <img
             src={frameBase64.startsWith('data:image') ? frameBase64 : `data:image/jpeg;base64,${frameBase64}`}
             alt="Live Stream Feed"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-contain bg-black"
           />
           {/* Live badge */}
           <div className="absolute top-3 left-3 z-10">

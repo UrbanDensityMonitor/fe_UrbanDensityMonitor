@@ -138,17 +138,18 @@ export function useTrafficData(streamId: string | null): UseTrafficDataResult {
         setData((prev) => {
           let updatedAlerts = prev?.alerts ?? [];
 
-          // alert is present only for High Density / Anomaly per API docs
+          // Alert hanya dikirim saat status berubah (state-transition), bukan setiap frame:
+          // - 'high_density' / 'anomaly' → kondisi ramai baru mulai
+          // - 'cleared' → kondisi sudah kembali normal
           if (msg.alert && msg.alert.triggered) {
+            const isCleared = msg.alert.type === "cleared";
             const newAlert: AlertStatus = {
               id: `alert-${Date.now()}`,
-              type: msg.alert.type.includes("Anomaly")
-                ? "anomaly"
-                : "high_density",
+              type: isCleared ? "high_density" : msg.alert.type.includes("Anomaly") ? "anomaly" : "high_density",
               message: msg.alert.message,
-              severity: "critical",
+              severity: isCleared ? "low" : "critical",
               timestamp: new Date().toISOString(),
-              isActive: true,
+              isActive: !isCleared,  // alert 'cleared' ditampilkan sebagai resolved
               locationZone: `Stream ${streamId}`,
             };
             // Keep max 5 recent alerts in the panel
