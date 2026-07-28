@@ -37,6 +37,8 @@ export function useTrafficData(streamId: string | null): UseTrafficDataResult {
   useEffect(() => {
     if (!streamId) {
       setIsLoading(false);
+      setData(null);
+      setFrameBase64(null);
       return;
     }
 

@@ -1,7 +1,7 @@
 // src/presentation/components/StatsPanel.tsx
 "use client";
 
-import { Activity, Shield } from "lucide-react";
+import { Activity } from "lucide-react";
 import { MetricCard } from "./MetricCard";
 import type { TrafficMetric } from "@/domain/entities/TrafficMetric";
 
@@ -11,8 +11,7 @@ interface StatsPanelProps {
 }
 
 export function StatsPanel({ metrics, totalVehicles }: StatsPanelProps) {
-  const vehicleMetrics = metrics.filter((m) => m.category === "vehicle" || m.category === "person");
-  const alertMetrics = metrics.filter((m) => m.category === "density" || m.category === "alert" || m.category === "anomaly");
+  const vehicleMetrics = metrics.filter((m) => m.category === "vehicle");
 
   return (
     <div className="flex flex-col gap-4">
@@ -35,23 +34,6 @@ export function StatsPanel({ metrics, totalVehicles }: StatsPanelProps) {
 
         <div className="grid grid-cols-2 gap-3">
           {vehicleMetrics.map((metric) => (
-            <MetricCard key={metric.id} metric={metric} />
-          ))}
-        </div>
-      </div>
-
-      {/* Section: Alerts & Density */}
-      <div className="bg-surface-1 border border-border-default rounded-2xl p-5">
-        <div className="flex items-center gap-2.5 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-status-danger/10 flex items-center justify-center">
-            <Shield size={15} className="text-status-danger" />
-          </div>
-          <h2 className="text-sm font-semibold text-text-primary">Anomaly Detection</h2>
-          <span className="w-2 h-2 rounded-full bg-status-danger animate-pulse ml-1" />
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          {alertMetrics.map((metric) => (
             <MetricCard key={metric.id} metric={metric} />
           ))}
         </div>
