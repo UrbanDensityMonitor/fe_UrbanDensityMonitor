@@ -15,7 +15,6 @@ import {
   AlertTriangle,
   Maximize2,
   Activity,
-  Gauge,
 } from "lucide-react";
 import { useMemo } from "react";
 
@@ -300,40 +299,7 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
               />
             </div>
 
-            {/* Speed & Occupancy */}
-            {(extendedData?.averageSpeed !== undefined ||
-              extendedData?.roadOccupancy !== undefined) && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-surface-2 rounded-xl px-2.5 py-2 flex items-center gap-2">
-                  <Gauge size={11} className="text-accent-primary flex-shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[9px] text-text-muted uppercase tracking-wider font-medium">
-                      Speed
-                    </p>
-                    <p className="text-xs font-bold text-text-primary">
-                      {extendedData?.averageSpeed?.toFixed(1) ?? "0.0"}{" "}
-                      <span className="text-[9px] font-normal text-text-muted">
-                        km/h
-                      </span>
-                    </p>
-                  </div>
-                </div>
-                <div className="bg-surface-2 rounded-xl px-2.5 py-2 flex items-center gap-2">
-                  <Activity size={11} className="text-accent-primary flex-shrink-0" />
-                  <div className="min-w-0">
-                    <p className="text-[9px] text-text-muted uppercase tracking-wider font-medium">
-                      Occupancy
-                    </p>
-                    <p className="text-xs font-bold text-text-primary">
-                      {extendedData?.roadOccupancy?.toFixed(1) ?? "0.0"}{" "}
-                      <span className="text-[9px] font-normal text-text-muted">
-                        %
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+
           </>
         ) : isOffline ? (
           <div className="flex items-center gap-2 bg-surface-2 rounded-xl px-3 py-2.5">
