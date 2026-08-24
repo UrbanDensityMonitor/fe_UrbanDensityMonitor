@@ -1,7 +1,7 @@
 // src/presentation/components/AlertPanel.tsx
 "use client";
 
-import { AlertTriangle, Bell, CheckCircle2, Clock, Shield } from "lucide-react";
+import { AlertTriangle, Bell, CheckCircle2, Clock } from "lucide-react";
 import type { AlertStatus } from "@/domain/entities/TrafficMetric";
 
 interface AlertPanelProps {
@@ -27,14 +27,14 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
   const activeAlerts = alerts.filter((a) => a.isActive);
 
   return (
-    <div className="bg-surface-1 border border-border-default rounded-2xl p-5">
+    <div className="bg-card border border-white/[0.08] rounded-2xl p-5">
       {/* Panel header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-accent-blue/10 flex items-center justify-center">
-            <Bell size={15} className="text-accent-blue" />
+          <div className="w-8 h-8 rounded-lg bg-accent/15 flex items-center justify-center">
+            <Bell size={15} className="text-accent" />
           </div>
-          <h2 className="text-sm font-semibold text-text-primary">Active Alerts</h2>
+          <h2 className="text-sm font-semibold text-white">Active Alerts</h2>
         </div>
         <span className="px-2.5 py-1 rounded-lg bg-status-danger/10 border border-status-danger/20 text-xs font-bold text-status-danger">
           {activeAlerts.length}
@@ -52,7 +52,7 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
                 flex items-start gap-3 p-3 rounded-xl border transition-all duration-200
                 ${alert.isActive
                   ? `${cfg.bg} border-white/8 ring-1 ${cfg.ring}`
-                  : "bg-surface-2/50 border-border-subtle opacity-50"
+                  : "bg-black/20 border-white/[0.06] opacity-50"
                 }
               `}
             >
@@ -61,7 +61,7 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
                 {alert.isActive ? (
                   <span className={`block w-2 h-2 rounded-full ${cfg.dot} animate-pulse-dot`} />
                 ) : (
-                  <CheckCircle2 size={14} className="text-text-muted" />
+                  <CheckCircle2 size={14} className="text-secondary" />
                 )}
               </div>
 
@@ -69,19 +69,19 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
               <div className="flex-1 min-w-0">
                 <p
                   className={`text-xs font-medium leading-snug ${
-                    alert.isActive ? cfg.text : "text-text-muted"
+                    alert.isActive ? cfg.text : "text-secondary"
                   }`}
                 >
                   {alert.message}
                 </p>
                 <div className="flex items-center gap-1.5 mt-1.5">
                   {alert.locationZone && (
-                    <span className="text-[11px] text-text-muted truncate">
+                    <span className="text-[11px] text-secondary truncate">
                       {alert.locationZone}
                     </span>
                   )}
-                  <span className="text-text-muted/30">·</span>
-                  <span className="flex items-center gap-0.5 text-[11px] text-text-muted">
+                  <span className="text-secondary/30">·</span>
+                  <span className="flex items-center gap-0.5 text-[11px] text-secondary">
                     <Clock size={10} />
                     {timeAgo(alert.timestamp)}
                   </span>

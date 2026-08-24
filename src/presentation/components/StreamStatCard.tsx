@@ -60,9 +60,9 @@ const densityConfig: Record<
 
 const defaultDensity = {
   bg: "bg-white/5",
-  text: "text-text-muted",
-  border: "border-white/10",
-  dot: "bg-text-muted",
+  text: "text-secondary",
+  border: "border-default",
+  dot: "bg-secondary",
   label: "—",
 };
 
@@ -85,10 +85,10 @@ function VehicleStat({
       >
         <Icon size={13} style={{ color }} />
       </div>
-      <span className="text-[13px] font-bold text-text-primary leading-none">
+      <span className="text-[13px] font-bold text-white leading-none">
         {value}
       </span>
-      <span className="text-[9px] text-text-muted uppercase tracking-wider font-medium">
+      <span className="text-[9px] text-secondary uppercase tracking-wider font-medium">
         {label}
       </span>
     </div>
@@ -134,19 +134,19 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
   return (
     <div
       className={`
-        group relative flex flex-col bg-surface-1 border rounded-2xl overflow-hidden
-        transition-all duration-300 hover:border-accent-primary/30 hover:shadow-lg hover:shadow-accent-primary/5
+        group relative flex flex-col bg-card border rounded-2xl overflow-hidden
+        card-interactive card-accent-stripe
         ${
           isLive && densityStatus === "High Density"
             ? "border-red-500/30 shadow-sm shadow-red-500/10"
             : isLive && densityStatus === "Anomaly"
             ? "border-purple-500/30 shadow-sm shadow-purple-500/10"
-            : "border-border-default"
+            : "border-white/[0.08] hover:border-accent/30"
         }
       `}
     >
       {/* ── Thumbnail / Live Feed Preview ── */}
-      <div className="relative h-40 bg-surface-2 overflow-hidden">
+      <div className="relative h-40 bg-black/30 overflow-hidden">
         {frameBase64 ? (
           <img
             src={frameBase64}
@@ -155,7 +155,7 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="flex flex-col items-center gap-2 text-text-muted">
+            <div className="flex flex-col items-center gap-2 text-secondary">
               {isOffline ? (
                 <>
                   <WifiOff size={22} strokeWidth={1.5} />
@@ -166,9 +166,9 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
                   <Activity
                     size={22}
                     strokeWidth={1.5}
-                    className="animate-pulse text-accent-primary"
+                    className="animate-pulse text-accent"
                   />
-                  <span className="text-xs font-medium text-accent-primary">
+                  <span className="text-xs font-medium text-accent">
                     Connecting…
                   </span>
                 </>
@@ -227,7 +227,7 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
         )}
 
         {/* Bottom gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-surface-1 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-card to-transparent" />
       </div>
 
       {/* ── Info & Stats ── */}
@@ -236,12 +236,12 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <h3
-              className="text-sm font-semibold text-text-primary leading-tight truncate"
+              className="text-sm font-semibold text-white leading-tight truncate"
               title={stream.location_name}
             >
               {stream.location_name}
             </h3>
-            <span className="text-[10px] text-text-muted capitalize font-medium">
+            <span className="text-[10px] text-secondary capitalize font-medium">
               {stream.stream_type}
             </span>
           </div>
@@ -251,9 +251,9 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
             {isLive ? (
               <Wifi size={13} className="text-emerald-400" />
             ) : isOffline ? (
-              <WifiOff size={13} className="text-text-muted" />
+              <WifiOff size={13} className="text-secondary" />
             ) : (
-              <Wifi size={13} className="text-text-muted animate-pulse" />
+              <Wifi size={13} className="text-secondary animate-pulse" />
             )}
           </div>
         </div>
@@ -262,11 +262,11 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
         {isLive ? (
           <>
             {/* Total vehicle highlight */}
-            <div className="flex items-center justify-between bg-surface-2 rounded-xl px-3 py-2">
-              <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+            <div className="flex items-center justify-between bg-black/30 rounded-xl px-3 py-2 border border-default">
+              <span className="text-[10px] font-semibold text-secondary uppercase tracking-wider">
                 Total Kendaraan
               </span>
-              <span className="text-base font-bold text-text-primary">
+              <span className="text-base font-bold text-white">
                 {totalVehicles}
               </span>
             </div>
@@ -298,21 +298,19 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
                 color="#34D399"
               />
             </div>
-
-
           </>
         ) : isOffline ? (
-          <div className="flex items-center gap-2 bg-surface-2 rounded-xl px-3 py-2.5">
-            <WifiOff size={13} className="text-text-muted" />
-            <span className="text-xs text-text-muted">Stream offline</span>
+          <div className="flex items-center gap-2 bg-black/30 rounded-xl px-3 py-2.5 border border-default">
+            <WifiOff size={13} className="text-secondary" />
+            <span className="text-xs text-secondary">Stream offline</span>
           </div>
         ) : (
           /* Skeleton loading */
           <div className="flex flex-col gap-2 animate-pulse">
-            <div className="h-8 bg-surface-2 rounded-xl" />
+            <div className="h-8 bg-white/5 rounded-xl" />
             <div className="grid grid-cols-4 gap-1">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-12 bg-surface-2 rounded-lg" />
+                <div key={i} className="h-12 bg-white/5 rounded-lg" />
               ))}
             </div>
           </div>
