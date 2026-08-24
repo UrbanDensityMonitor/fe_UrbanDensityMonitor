@@ -214,10 +214,6 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-[11px] text-secondary/40 font-mono mt-4">
-          Urban Density Monitor · Supabase Auth · YOLOv8 ML Vision
-        </p>
       </div>
     </div>
   );
