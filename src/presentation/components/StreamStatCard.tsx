@@ -131,6 +131,12 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
   const isConnecting = !isOffline && isLoading && !data;
   const isLive = !isLoading && !error && !!data;
 
+  const handleOpenDetail = () => {
+    if (stream.status === "active") {
+      onExpand(stream.id);
+    }
+  };
+
   return (
     <div
       className={`
@@ -146,12 +152,18 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
       `}
     >
       {/* ── Thumbnail / Live Feed Preview ── */}
-      <div className="relative h-40 bg-black/30 overflow-hidden">
+      <div
+        onClick={handleOpenDetail}
+        className={`relative h-40 bg-black/30 overflow-hidden ${
+          stream.status === "active" ? "cursor-pointer" : ""
+        }`}
+        title={stream.status === "active" ? "Klik untuk melihat tampilan penuh" : undefined}
+      >
         {frameBase64 ? (
           <img
             src={frameBase64}
             alt={`Live feed ${stream.location_name}`}
-            className="w-full h-full object-cover transition-opacity duration-500"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -184,8 +196,8 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
 
         {/* Live badge */}
         {isLive && (
-          <div className="absolute top-2 left-2">
-            <div className="flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded-md">
+          <div className="absolute top-2 left-2 z-10">
+            <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/10">
               <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
               <span className="text-[9px] font-bold text-white uppercase tracking-widest">
                 Live
@@ -196,9 +208,9 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
 
         {/* Density badge */}
         {isLive && densityStatus && (
-          <div className="absolute top-2 right-2">
+          <div className="absolute top-2 right-2 z-10">
             <div
-              className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[9px] font-bold uppercase tracking-wider backdrop-blur-sm ${density.bg} ${density.text} ${density.border}`}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[9px] font-bold uppercase tracking-wider backdrop-blur-md ${density.bg} ${density.text} ${density.border}`}
             >
               <span
                 className={`w-1.5 h-1.5 rounded-full ${density.dot} ${
@@ -212,31 +224,35 @@ export function StreamStatCard({ stream, onExpand }: StreamStatCardProps) {
           </div>
         )}
 
-        {/* Expand button */}
+        {/* Expand button (top layer above gradient) */}
         {stream.status === "active" && (
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               onExpand(stream.id);
             }}
-            className="absolute bottom-2 right-2 w-7 h-7 rounded-lg bg-black/60 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/80 opacity-0 group-hover:opacity-100 transition-all"
+            className="absolute bottom-2 right-2 z-20 w-7 h-7 rounded-lg bg-black/70 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/80 hover:text-black hover:bg-accent transition-all duration-200 shadow-md cursor-pointer"
             title="Lihat detail penuh"
           >
-            <Maximize2 size={12} />
+            <Maximize2 size={13} />
           </button>
         )}
 
-        {/* Bottom gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-card to-transparent" />
+        {/* Bottom gradient — pointer-events-none so it never blocks clicks */}
+        <div className="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-card to-transparent pointer-events-none z-0" />
       </div>
 
       {/* ── Info & Stats ── */}
       <div className="flex flex-col gap-3 p-4 flex-1">
         {/* Location name + status */}
         <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
+          <div
+            className={`min-w-0 ${stream.status === "active" ? "cursor-pointer" : ""}`}
+            onClick={handleOpenDetail}
+          >
             <h3
-              className="text-sm font-semibold text-white leading-tight truncate"
+              className="text-sm font-semibold text-white leading-tight truncate hover:text-accent transition-colors"
               title={stream.location_name}
             >
               {stream.location_name}

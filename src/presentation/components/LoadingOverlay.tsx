@@ -11,8 +11,7 @@ interface LoadingOverlayProps {
 
 export function LoadingOverlay({
   onCancel,
-  message = "Connecting to ML Vision",
-  subMessage = "Fetching real-time CCTV data…",
+  message = "Loading",
 }: LoadingOverlayProps) {
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-base/90 backdrop-blur-sm animate-fade-in">
@@ -26,7 +25,6 @@ export function LoadingOverlay({
         </div>
         <div className="text-center">
           <p className="text-sm font-semibold text-white">{message}</p>
-          <p className="text-xs text-secondary mt-1.5">{subMessage}</p>
         </div>
         {/* Loading bar */}
         <div className="w-48 h-1 rounded-full bg-card overflow-hidden border border-default">

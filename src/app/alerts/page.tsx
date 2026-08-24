@@ -256,13 +256,7 @@ export default function AlertsPage() {
                       : "bg-card border-white/[0.08]"
                   }`}
                 >
-                  {/* Icon */}
-                  <div
-                    className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 text-base ${cfg.bg} border ${cfg.border}`}
-                  >
-                    {cfg.icon}
-                  </div>
-
+                  
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -277,7 +271,7 @@ export default function AlertsPage() {
                           Read
                         </span>
                       ) : (
-                        <span className="w-1.5 h-1.5 rounded-full bg-status-danger animate-pulse" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-status-danger" />
                       )}
                     </div>
                     <p className="text-sm font-medium text-white mt-1 leading-snug">
@@ -285,7 +279,7 @@ export default function AlertsPage() {
                     </p>
                     <div className="flex items-center gap-3 mt-2 text-[11px] text-secondary">
                       {alert.stream_location && (
-                        <span>📍 {alert.stream_location}</span>
+                        <span>{alert.stream_location}</span>
                       )}
                       <span>·</span>
                       <span>{timeAgo(alert.created_at)}</span>

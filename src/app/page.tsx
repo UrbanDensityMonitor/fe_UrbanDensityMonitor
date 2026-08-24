@@ -169,33 +169,12 @@ export default function Page() {
                 <div className="h-[420px]">
                   <MapBackground frameBase64={frameBase64} />
                 </div>
-
-                {/* Scanning indicator */}
-                <div className="flex items-center gap-4 mt-4 px-1">
-                  <div className="flex items-center gap-2 text-xs text-secondary">
-                    <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse-dot" />
-                    <span className="font-medium">Scanning Zone A–G</span>
-                  </div>
-                  <span className="text-default text-xs">·</span>
-                  <span className="flex items-center gap-1.5 text-xs text-secondary">
-                    <Clock size={11} />
-                    {new Date().toLocaleDateString("id-ID", {
-                      weekday: "short",
-                      day: "numeric",
-                      month: "short",
-                    })}
-                  </span>
-                  <span className="text-default text-xs">·</span>
-                  <span className="text-[11px] text-secondary font-mono">
-                    ML Model: YOLOv8 · Python FastAPI
-                  </span>
-                </div>
               </div>
 
               {/* Right column — Stats + Alerts */}
-              <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-140px)]">
+              <div className="space-y-4">
                 <StatsPanel metrics={data.metrics} totalVehicles={totalVehicles} />
-                <AlertPanel alerts={data.alerts} />
+                <AlertPanel alerts={data.alerts} maxHeight="max-h-[260px]" />
               </div>
             </div>
           </div>

@@ -1,6 +1,8 @@
 // src/app/api/alerts/route.ts
 import { NextResponse } from "next/server";
-import { supabaseServer } from "@/infrastructure/config/supabaseServer";
+import { supabaseServer } from "@/infrastructure/supabase/server";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   try {
@@ -12,12 +14,12 @@ export async function GET(request: Request) {
 
     let query = supabaseServer
       .from("alerts")
-      .select("*", { count: "exact" });
+      .select("*, streams(location_name)", { count: "exact" });
 
     if (streamId) {
       query = query.eq("stream_id", streamId);
     }
-    if (isReadParam !== null && isReadParam !== undefined) {
+    if (isReadParam !== null && isReadParam !== undefined && isReadParam !== "") {
       query = query.eq("is_read", isReadParam === "true");
     }
 
@@ -28,19 +30,26 @@ export async function GET(request: Request) {
     const { data, count, error } = await query;
 
     if (error) {
+      console.error("API /api/alerts error:", error);
       return NextResponse.json(
         { message: error.message || "Failed to fetch alerts" },
         { status: 500 }
       );
     }
 
+    const formattedData = (data || []).map((item: any) => ({
+      ...item,
+      stream_location: item.streams?.location_name ?? item.stream_location,
+    }));
+
     return NextResponse.json({
-      data: data || [],
-      total: count ?? (data || []).length,
+      data: formattedData,
+      total: count ?? formattedData.length,
       limit,
       offset,
     });
   } catch (err: any) {
+    console.error("API /api/alerts exception:", err);
     return NextResponse.json(
       { message: err.message || "Internal Server Error" },
       { status: 500 }
