@@ -22,7 +22,7 @@ export interface HistoryResponse {
 }
 
 export const historyService = {
-  /** GET /api/history/ with optional filters */
+  /** GET /api/v1/history/ with optional filters */
   async getHistory(params: GetHistoryParams = {}): Promise<HistoryResponse> {
     const query = new URLSearchParams();
     if (params.stream_id) query.set("stream_id", params.stream_id);
@@ -34,7 +34,7 @@ export const historyService = {
     if (params.density_status) query.set("density_status", params.density_status);
 
     const qs = query.toString();
-    const res = await apiService.get(`/api/history${qs ? `?${qs}` : ""}`);
+    const res = await apiService.get(`/api/v1/history${qs ? `?${qs}` : ""}`);
 
     if (Array.isArray(res)) {
       return {

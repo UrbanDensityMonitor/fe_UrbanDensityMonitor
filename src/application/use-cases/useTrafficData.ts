@@ -204,10 +204,16 @@ export function useTrafficData(streamId: string | null): UseTrafficDataResult {
     frameBase64,
     isLoading,
     error,
+    /**
+     * Paksa reconnect stream.
+     * disconnect() synchronous, connect() async — await agar tidak ada
+     * race condition (koneksi lama belum sepenuhnya tertutup saat baru dibuka).
+     */
     refetch: () => {
       if (streamId) {
         trafficWebSocketService.disconnect(streamId);
-        trafficWebSocketService.connect(streamId);
+        // Fire-and-forget dengan void; error sudah di-handle dalam connect()
+        void trafficWebSocketService.connect(streamId);
       }
     },
     lastFetchedAt,

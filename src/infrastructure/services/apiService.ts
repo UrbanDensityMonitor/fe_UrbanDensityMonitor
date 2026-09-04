@@ -26,12 +26,17 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
   });
 
   if (!response.ok) {
-    let errorMsg = "API Request Failed";
+    let errorMsg = `HTTP ${response.status}: ${response.statusText || "Request Failed"}`;
     try {
       const errorData = await response.json();
-      errorMsg = errorData.message || errorMsg;
+      // Backend mengembalikan { success: false, error: { message: "..." } }
+      // Fallback ke flat { message: "..." } untuk kompatibilitas API lain
+      errorMsg =
+        errorData?.error?.message ||
+        errorData?.message ||
+        errorMsg;
     } catch {
-      // ignore
+      // Response body bukan JSON — gunakan statusText
     }
     throw new Error(errorMsg);
   }

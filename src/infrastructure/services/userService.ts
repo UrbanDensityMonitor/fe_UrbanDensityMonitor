@@ -1,8 +1,8 @@
 // src/infrastructure/services/userService.ts
-// Aligned with api_documentation.md
+// Aligned with api_documentation.md (v1)
 //
 // Per docs, admin creates users via Supabase Auth Admin API on the backend.
-// The frontend POST /api/users/ is NOT in the API docs.
+// The frontend POST /api/v1/users/ is NOT in the API docs.
 // Only GET, PUT, DELETE are documented.
 
 import { apiService } from "./apiService";
@@ -15,19 +15,19 @@ export interface UpdateUserPayload {
 }
 
 export const userService = {
-  /** GET /api/users/ — admin only, 403 if not admin */
+  /** GET /api/v1/users — admin only, 403 if not admin */
   async getUsers(): Promise<UserRecord[]> {
-    const res = await apiService.get("/api/users");
+    const res = await apiService.get("/api/v1/users");
     return Array.isArray(res) ? res : res.data ?? res.users ?? [];
   },
 
-  /** PUT /api/users/{id} — update full_name, role, is_active */
+  /** PUT /api/v1/users/{id} — update full_name, role, is_active */
   async updateUser(id: string, payload: UpdateUserPayload): Promise<UserRecord> {
-    return apiService.put(`/api/users/${id}`, payload);
+    return apiService.put(`/api/v1/users/${id}`, payload);
   },
 
-  /** DELETE /api/users/{id} — removes from Supabase Auth + DB */
+  /** DELETE /api/v1/users/{id} — removes from Supabase Auth + DB */
   async deleteUser(id: string): Promise<void> {
-    return apiService.delete(`/api/users/${id}`);
+    return apiService.delete(`/api/v1/users/${id}`);
   },
 };

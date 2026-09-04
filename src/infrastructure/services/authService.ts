@@ -5,13 +5,39 @@ import { supabase } from "@/infrastructure/config/supabaseClient";
 /** Cookie name must match what middleware reads */
 const AUTH_COOKIE = "sb-auth-token";
 
-function setAuthCookie(token: string) {
-  // Expires in 1 hour, SameSite=Lax so it's sent on navigation requests
-  document.cookie = `${AUTH_COOKIE}=${token}; path=/; max-age=3600; SameSite=Lax`;
+/** Flag `Secure` hanya di production — mencegah cookie dikirim via HTTP plain text */
+const SECURE_FLAG =
+  typeof window !== "undefined" && window.location.protocol === "https:"
+    ? "; Secure"
+    : "";
+
+/**
+ * Set auth cookie dengan flag keamanan yang tepat.
+ * `HttpOnly` tidak bisa diset via JS (hanya via server-side Set-Cookie),
+ * namun `SameSite=Lax; Secure` memberikan proteksi CSRF dan sniffing.
+ *
+ * @param token - JWT access token
+ * @param expiresAt - Unix timestamp (detik) kapan token expired; default 1 jam
+ */
+function setAuthCookie(token: string, expiresAt?: number) {
+  // Hitung max-age dari Supabase session expires_at jika tersedia
+  const maxAge = expiresAt
+    ? Math.max(0, expiresAt - Math.floor(Date.now() / 1000))
+    : 3600; // fallback 1 jam
+
+  document.cookie = [
+    `${AUTH_COOKIE}=${token}`,
+    "path=/",
+    `max-age=${maxAge}`,
+    "SameSite=Lax",
+    SECURE_FLAG,
+  ]
+    .filter(Boolean)
+    .join("; ");
 }
 
 function clearAuthCookie() {
-  document.cookie = `${AUTH_COOKIE}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+  document.cookie = `${AUTH_COOKIE}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax${SECURE_FLAG}`;
 }
 
 export const authService = {
@@ -22,9 +48,9 @@ export const authService = {
     });
     if (error) throw error;
 
-    // Store the actual JWT so middleware can verify it's a real session
+    // Sync cookie expiry dengan Supabase session
     const token = data.session?.access_token ?? "true";
-    setAuthCookie(token);
+    setAuthCookie(token, data.session?.expires_at);
     return data;
   },
 
@@ -39,7 +65,7 @@ export const authService = {
     if (error) throw error;
 
     if (data.session?.access_token) {
-      setAuthCookie(data.session.access_token);
+      setAuthCookie(data.session.access_token, data.session.expires_at);
     }
     return data;
   },
@@ -54,9 +80,9 @@ export const authService = {
     const { data, error } = await supabase.auth.getSession();
     if (error) throw error;
 
-    // Keep cookie in sync with actual Supabase session
+    // Keep cookie in sync with actual Supabase session (including expiry)
     if (data.session?.access_token) {
-      setAuthCookie(data.session.access_token);
+      setAuthCookie(data.session.access_token, data.session.expires_at);
     } else {
       clearAuthCookie();
     }

@@ -11,22 +11,22 @@ export interface CreateStreamPayload {
 }
 
 export const streamService = {
-  /** GET /api/streams/ — returns { data: Stream[], total: number } */
+  /** GET /api/v1/streams — returns { data: Stream[], total: number } */
   async getStreams(): Promise<Stream[]> {
-    const res = await apiService.get("/api/streams");
+    const res = await apiService.get("/api/v1/streams");
     // Backend wraps in { data: [...], total: N }
     if (Array.isArray(res)) return res;
     return res.data ?? res.streams ?? [];
   },
 
-  /** POST /api/streams/ */
+  /** POST /api/v1/streams */
   async createStream(payload: CreateStreamPayload): Promise<Stream> {
-    return apiService.post("/api/streams", payload);
+    return apiService.post("/api/v1/streams", payload);
   },
 
-  /** DELETE /api/streams/{id} */
+  /** DELETE /api/v1/streams/{id} */
   async deleteStream(id: string): Promise<void> {
-    return apiService.delete(`/api/streams/${id}`);
+    return apiService.delete(`/api/v1/streams/${id}`);
   },
 
   /**

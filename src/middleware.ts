@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Check for a non-empty sb-auth-token cookie value
-  // We store the actual JWT (not just "true") so this is a reliable check
-  const authCookie = request.cookies.get('sb-auth-token');
-  const isAuthenticated = !!(authCookie?.value && authCookie.value.length > 4);
+  // Validasi format JWT (header.payload.signature) — 3 segmen dipisah titik.
+  // Backend tetap memvalidasi signature; ini hanya untuk mencegah redirect
+  // yang tidak perlu bagi user yang belum login sama sekali.
+  const authCookie = request.cookies.get("sb-auth-token");
+  const token = authCookie?.value ?? "";
+  const isAuthenticated = token.split(".").length === 3 && token.length > 20;
 
   const pathname = request.nextUrl.pathname;
   const isAuthRoute = pathname.startsWith('/auth');

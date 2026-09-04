@@ -73,11 +73,21 @@ class TrafficWebSocketService {
 
       const wsUrl =
         process.env.NEXT_PUBLIC_WS_API_URL || "ws://localhost:8000";
-      const url = token
-        ? `${wsUrl}/ws/live/${streamId}?token=${token}`
-        : `${wsUrl}/ws/live/${streamId}`;
+      const baseUrl = `${wsUrl}/ws/live/${streamId}`;
 
-      const ws = new WebSocket(url);
+      /**
+       * Kirim token via Sec-WebSocket-Protocol header (subprotocol).
+       * Ini JAUH lebih aman dari query param karena:
+       * - Tidak tercatat di Nginx/proxy access log (URL tidak mengandung token)
+       * - Tidak tersimpan di browser history
+       * - Tidak bocor via Referer header
+       *
+       * Backend (_extract_token di websocket.py) membaca header ini sebagai prioritas 1.
+       * Fallback ke tanpa auth jika tidak ada token (koneksi mungkin ditolak backend).
+       */
+      const ws = token
+        ? new WebSocket(baseUrl, [token]) // token via subprotocol header
+        : new WebSocket(baseUrl);
       conn.ws = ws;
 
       ws.onmessage = (event) => {

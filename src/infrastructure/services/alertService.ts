@@ -19,7 +19,7 @@ export interface AlertsResponse {
 }
 
 export const alertService = {
-  /** GET /api/alerts/ with optional query params */
+  /** GET /api/v1/alerts/ with optional query params */
   async getAlerts(params: GetAlertsParams = {}): Promise<AlertsResponse> {
     const query = new URLSearchParams();
     if (params.stream_id) query.set("stream_id", params.stream_id);
@@ -28,7 +28,7 @@ export const alertService = {
     if (params.offset !== undefined) query.set("offset", String(params.offset));
 
     const qs = query.toString();
-    const res = await apiService.get(`/api/alerts${qs ? `?${qs}` : ""}`);
+    const res = await apiService.get(`/api/v1/alerts${qs ? `?${qs}` : ""}`);
 
     // Normalize: backend may return array or wrapped object
     if (Array.isArray(res)) {
@@ -47,8 +47,8 @@ export const alertService = {
     };
   },
 
-  /** PATCH /api/alerts/{id}/read — mark alert as read */
+  /** PATCH /api/v1/alerts/{id}/read — mark alert as read */
   async markAsRead(id: string): Promise<void> {
-    return apiService.patch(`/api/alerts/${id}/read`, {});
+    return apiService.patch(`/api/v1/alerts/${id}/read`, {});
   },
 };
