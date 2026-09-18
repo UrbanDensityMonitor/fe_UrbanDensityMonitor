@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
     let query = supabaseServer
       .from("alerts")
-      .select("*, streams(location_name)", { count: "exact" });
+      .select("*", { count: "exact" });
 
     if (streamId) {
       query = query.eq("stream_id", streamId);
@@ -37,9 +37,27 @@ export async function GET(request: Request) {
       );
     }
 
-    const formattedData = (data || []).map((item: any) => ({
+    const alerts = data || [];
+
+    // Resolve stream location manually (alerts.stream_id has no FK to streams).
+    const streamIds = Array.from(
+      new Set(alerts.map((a: any) => a.stream_id).filter(Boolean))
+    );
+    const locationById: Record<string, string> = {};
+    if (streamIds.length > 0) {
+      const { data: streamsData } = await supabaseServer
+        .from("streams")
+        .select("id, location_name")
+        .in("id", streamIds);
+      for (const s of streamsData || []) {
+        locationById[s.id] = s.location_name;
+      }
+    }
+
+    const formattedData = alerts.map((item: any) => ({
       ...item,
-      stream_location: item.streams?.location_name ?? item.stream_location,
+      stream_location:
+        item.stream_location ?? locationById[item.stream_id] ?? null,
     }));
 
     return NextResponse.json({
