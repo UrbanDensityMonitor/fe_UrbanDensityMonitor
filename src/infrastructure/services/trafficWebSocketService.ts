@@ -74,8 +74,8 @@ class TrafficWebSocketService {
       const wsUrl =
         process.env.NEXT_PUBLIC_WS_API_URL || "ws://localhost:8000";
       const url = token
-        ? `${wsUrl}/ws/live/${streamId}?token=${token}`
-        : `${wsUrl}/ws/live/${streamId}`;
+        ? `${wsUrl}/ws/v1/live/${streamId}?token=${token}`
+        : `${wsUrl}/ws/v1/live/${streamId}`;
 
       const ws = new WebSocket(url);
       conn.ws = ws;

@@ -12,9 +12,10 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
 
+    // Step 1: Ambil alerts tanpa JOIN (karena stream_id bisa dari streams ATAU private_streams)
     let query = supabaseServer
       .from("alerts")
-      .select("*, streams(location_name)", { count: "exact" });
+      .select("*", { count: "exact" });
 
     if (streamId) {
       query = query.eq("stream_id", streamId);
@@ -37,9 +38,40 @@ export async function GET(request: Request) {
       );
     }
 
-    const formattedData = (data || []).map((item: any) => ({
+    const alerts = data || [];
+
+    // Step 2: Kumpulkan semua stream_id unik dari hasil alert
+    const streamIds = Array.from(new Set(alerts.map((a: any) => a.stream_id).filter(Boolean)));
+
+    // Step 3: Query lokasi dari kedua tabel secara paralel
+    const [publicRes, privateRes] = await Promise.all([
+      streamIds.length > 0
+        ? supabaseServer
+            .from("streams")
+            .select("id, location_name")
+            .in("id", streamIds)
+        : Promise.resolve({ data: [] }),
+      streamIds.length > 0
+        ? supabaseServer
+            .from("private_streams")
+            .select("id, location_name, camera_name")
+            .in("id", streamIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    // Step 4: Buat lookup map id → nama lokasi
+    const locationMap: Record<string, string> = {};
+    for (const s of publicRes.data || []) {
+      locationMap[s.id] = s.location_name;
+    }
+    for (const s of privateRes.data || []) {
+      locationMap[s.id] = s.camera_name || s.location_name;
+    }
+
+    // Step 5: Gabungkan stream_location ke setiap alert
+    const formattedData = alerts.map((item: any) => ({
       ...item,
-      stream_location: item.streams?.location_name ?? item.stream_location,
+      stream_location: locationMap[item.stream_id] ?? null,
     }));
 
     return NextResponse.json({
